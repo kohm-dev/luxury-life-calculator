@@ -57,7 +57,6 @@ Error generating stack: `+e.message+`
 <div id="result-share-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:#0d0d1a;z-index:9999;overflow-y:auto;font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif;">
   <div style="max-width:680px;margin:0 auto;padding:40px 24px;">
     <button onclick="document.getElementById('result-share-overlay').style.display='none'" style="background:transparent;border:none;color:#C9A96E;font-size:13px;cursor:pointer;margin-bottom:24px;display:flex;align-items:center;gap:6px;">&#8592; 戻る</button>
-    <div id="result-share-capture" style="background:#0d0d1a;padding:0;">
     <div id="result-share-card" style="background:linear-gradient(135deg,#13132a,#1a1a35);border:1px solid rgba(201,169,110,0.3);border-radius:20px;padding:32px 28px;margin-bottom:24px;">
       <div style="font-size:11px;letter-spacing:3px;color:#C9A96E;margin-bottom:8px;text-transform:uppercase;">Your Luxury Life</div>
       <h2 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(24px,5vw,38px);font-weight:700;color:#fff;margin:0 0 24px;line-height:1.3;">これがあなたの<br>理想の人生です</h2>
@@ -93,17 +92,15 @@ Error generating stack: `+e.message+`
           <div id="share-hourly" style="font-size:18px;font-weight:700;color:#F0C070;">---万円/時間</div>
         </div>
       </div>
-      <p style="margin:0;font-size:13px;color:#C9A96E;text-align:center;font-weight:700;line-height:1.8;">もしそんな収入を得られたら、あなたの時給は上記の通り！<br>ワクワクしませんか！？<br>千里の道も一歩から。</p>
+      <p style="margin:0;font-size:13px;color:#C9A96E;text-align:center;font-weight:700;line-height:1.8;">もしそんな収入を得られたら、あなたの時給は上記の通り！<br>ワクワクしませんか！？<br>千里の道も一歩から。頑張りましょう。</p>
     </div>
     <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:24px;margin-bottom:20px;">
       <p style="color:#ccc;font-size:13px;line-height:2;margin:0 0 16px;font-style:italic;">"全ては理想からの逆算から始まります。今がどうだからではない。<br>目標を設定し、それを達するために努力し、それを掴み取るのが人間である。"</p>
       <p style="color:#aaa;font-size:13px;line-height:1.9;margin:0;">人生は夢を叶える物語。<br>収入から逆算すれば、目標とそれに基づくアクションが見えてくる。</p>
     </div>
-    </div>
     <div style="display:flex;flex-direction:column;gap:12px;">
       <button onclick="saveShareImage()" style="width:100%;padding:14px;border-radius:12px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.4);color:#C9A96E;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">&#128248; 画像として保存する</button>
       <button onclick="shareToTwitter()" style="width:100%;padding:14px;border-radius:12px;background:rgba(29,161,242,0.15);border:1px solid rgba(29,161,242,0.4);color:#1DA1F2;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">&#120143; X (Twitter) でシェアする</button>
-      <button onclick="shareToFriends()" style="width:100%;padding:14px;border-radius:12px;background:rgba(126,176,155,0.15);border:1px solid rgba(126,176,155,0.4);color:#7EB09B;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">&#128101; 友人や家族へシェアする</button>
     </div>
   </div>
 </div>
@@ -145,7 +142,7 @@ Error generating stack: `+e.message+`
   };
 
   window.saveShareImage = function(){
-    var el = document.getElementById('result-share-capture');
+    var el = document.getElementById('result-share-card');
     if(el && window.html2canvas){
       window.html2canvas(el, {backgroundColor:'#13132a', scale:2}).then(function(canvas){
         var link = document.createElement('a');
@@ -164,30 +161,6 @@ Error generating stack: `+e.message+`
     var annual = window._shareAnnual || '---';
     var text = encodeURIComponent('理想の生活費シミュレーターで計算したら、必要年収' + annual + '万円でした！✨ あなたも試してみて #理想の生活 #ライフプランニング #LuxuryLife');
     window.open('https://twitter.com/intent/tweet?text=' + text, '_blank', 'noopener,noreferrer');
-  };
-
-  window.shareToFriends = function(){
-    var annual = window._shareAnnual || '---';
-    var shareText = '理想の生活費シミュレーターで計算したら、必要年収' + annual + '万円でした！✨ あなたも試してみて！';
-    var shareUrl = 'https://kohm-dev.github.io/luxury-life-calculator/';
-    if(navigator.share){
-      navigator.share({
-        title: 'Luxury Life Calculator - 理想の人生シミュレーター',
-        text: shareText,
-        url: shareUrl
-      }).catch(function(){});
-    } else {
-      var copyText = shareText + '\n' + shareUrl;
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(copyText).then(function(){
-          alert('テキストとURLをコピーしました！LINEやメッセージに貼り付けてシェアしてください。');
-        }).catch(function(){
-          prompt('以下をコピーしてシェアしてください：', copyText);
-        });
-      } else {
-        prompt('以下をコピーしてシェアしてください：', copyText);
-      }
-    }
   };
 })();
 </script>
