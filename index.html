@@ -224,6 +224,31 @@ Error generating stack: `+ e.message + `
         }
       };
 
+      function isMobile() {
+        return (navigator.maxTouchPoints > 0 && window.innerWidth < 768);
+      }
+
+      function showToast(msg) {
+        var el = document.createElement('div');
+        el.textContent = msg;
+        el.style.cssText = 'position:fixed;top:24px;left:50%;transform:translateX(-50%);background:rgba(201,169,110,0.95);color:#fff;padding:12px 28px;border-radius:30px;font-size:14px;font-weight:600;z-index:999999;box-shadow:0 4px 20px rgba(0,0,0,0.3);pointer-events:none;opacity:0;transition:opacity 0.3s;';
+        document.body.appendChild(el);
+        requestAnimationFrame(function () { el.style.opacity = '1'; });
+        setTimeout(function () { el.style.opacity = '0'; setTimeout(function () { document.body.removeChild(el); }, 300); }, 2000);
+      }
+
+      function copyToClipboard(text, msg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function () { showToast(msg); });
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;';
+          document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); document.body.removeChild(ta);
+          showToast(msg);
+        }
+      }
+
       window.shareResults = function () {
         var annual = window._shareAnnual || 0;
         var monthly = window._shareMonthly || 0;
@@ -231,28 +256,20 @@ Error generating stack: `+ e.message + `
         var base = 'https://kohm-dev.github.io/luxury-life-calculator/';
         var url = base + '?r=' + encodeURIComponent(monthly + ',' + annual);
         var text = '理想の生活費シミュレーターで計算してみた！\n💰 必要年収: ' + annual + '万円\n🏠 月額生活費: ' + monthly + '万円\n⏰ あなたの時給: ' + hourly + '万円\n\nあなたの結果を見てみて👇';
-        if (navigator.share) {
+        if (isMobile() && navigator.share) {
           navigator.share({ title: 'Luxury Life Planner - 私の結果', text: text, url: url }).catch(function () { });
-        } else if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text + '\n' + url).then(function () {
-            alert('シェア用URLをコピーしました！');
-          });
         } else {
-          prompt('以下をコピーしてシェアしてください：', url);
+          copyToClipboard(text + '\n' + url, '📋 シェア用テキストをコピーしました！');
         }
       };
 
       window.sharePage = function () {
         var base = 'https://kohm-dev.github.io/luxury-life-calculator/';
         var text = '理想の生活、いくらかかるか知ってる？\nこのシミュレーターで計算してみて！';
-        if (navigator.share) {
+        if (isMobile() && navigator.share) {
           navigator.share({ title: 'Luxury Life Planner', text: text, url: base }).catch(function () { });
-        } else if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text + '\n' + base).then(function () {
-            alert('URLをコピーしました！');
-          });
         } else {
-          prompt('以下をコピーしてシェアしてください：', base);
+          copyToClipboard(text + '\n' + base, '📋 URLをコピーしました！');
         }
       };
     })();
