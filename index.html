@@ -100,7 +100,8 @@ Error generating stack: `+e.message+`
     </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:12px;">
-      <button onclick="nativeShare()" id="native-share-btn" style="width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#C9A96E,#a07840);border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:1px;box-shadow:0 4px 24px rgba(201,169,110,0.3);">&#128640; シェアする</button>
+      <button onclick="shareResults()" id="share-results-btn" style="width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#C9A96E,#a07840);border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;letter-spacing:1px;box-shadow:0 4px 24px rgba(201,169,110,0.3);">&#128279; 結果をシェアする</button>
+      <button onclick="sharePage()" style="width:100%;padding:12px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">&#128640; このページをシェアする</button>
       <button onclick="saveShareImage()" style="width:100%;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:#888;font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">&#128248; 画像として保存する</button>
     </div>
   </div>
@@ -158,45 +159,98 @@ Error generating stack: `+e.message+`
     }
   };
 
-  window.nativeShare = function(){
-    var btn = document.getElementById('native-share-btn');
-    var origText = btn.innerHTML;
-    btn.innerHTML = '⏳ 画像を準備中...';
-    btn.disabled = true;
-    var el = document.getElementById('result-share-capture');
-    if(el && window.html2canvas){
-      window.html2canvas(el, {backgroundColor:'#13132a', scale:2}).then(function(canvas){
-        canvas.toBlob(function(blob){
-          var file = new File([blob], 'my-luxury-life.png', {type:'image/png'});
-          var annual = window._shareAnnual || '---';
-          var monthly = window._shareMonthly || '---';
-          var shareText = '理想の生活費シミュレーターで計算してみた！\n💰 必要年収: ' + annual + '万円\n🏠 月額生活費: ' + monthly + '万円\nあなたも試してみて👇\nhttps://kohm-dev.github.io/luxury-life-calculator/';
-          if(navigator.canShare && navigator.canShare({files:[file]})){
-            navigator.share({title:'Luxury Life Planner',text:shareText,files:[file]}).catch(function(){});
-          } else if(navigator.share){
-            navigator.share({title:'Luxury Life Planner',text:shareText,url:'https://kohm-dev.github.io/luxury-life-calculator/'}).catch(function(){});
-          } else {
-            var link = document.createElement('a');
-            link.download = 'my-luxury-life.png';
-            link.href = canvas.toDataURL('image/png');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            if(navigator.clipboard && navigator.clipboard.writeText){
-              navigator.clipboard.writeText(shareText).then(function(){
-                alert('画像を保存しました！シェア用テキストもコピーしました。');
-              });
-            }
-          }
-          btn.innerHTML = origText;
-          btn.disabled = false;
-        }, 'image/png');
-      }).catch(function(){
-        btn.innerHTML = origText;
-        btn.disabled = false;
-        alert('画像の生成に失敗しました');
+  window.shareResults = function(){
+    var annual = window._shareAnnual || 0;
+    var monthly = window._shareMonthly || 0;
+    var base = 'https://kohm-dev.github.io/luxury-life-calculator/';
+    var url = base + '?r=' + encodeURIComponent(monthly + ',' + annual);
+    var text = '理想の生活費シミュレーターで計算してみた！\n💰 必要年収: ' + annual + '万円\n🏠 月額生活費: ' + monthly + '万円\n\nあなたの結果を見てみて👇';
+    if(navigator.share){
+      navigator.share({title:'Luxury Life Planner - 私の結果',text:text,url:url}).catch(function(){});
+    } else if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text + '\n' + url).then(function(){
+        alert('シェア用URLをコピーしました！');
       });
+    } else {
+      prompt('以下をコピーしてシェアしてください：', url);
     }
+  };
+
+  window.sharePage = function(){
+    var base = 'https://kohm-dev.github.io/luxury-life-calculator/';
+    var text = '理想の生活、いくらかかるか知ってる？\nこのシミュレーターで計算してみて！';
+    if(navigator.share){
+      navigator.share({title:'Luxury Life Planner',text:text,url:base}).catch(function(){});
+    } else if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text + '\n' + base).then(function(){
+        alert('URLをコピーしました！');
+      });
+    } else {
+      prompt('以下をコピーしてシェアしてください：', base);
+    }
+  };
+})();
+</script>
+
+<div id="shared-results-page" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0d0d1a;z-index:99999;overflow-y:auto;font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif;color:#e8e8f0;">
+  <div style="max-width:480px;margin:0 auto;padding:40px 20px 60px;">
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:11px;letter-spacing:4px;color:#C9A96E;text-transform:uppercase;margin-bottom:12px;">Luxury Life Planner</div>
+      <h1 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:clamp(22px,5vw,32px);font-weight:700;color:#fff;margin:0 0 8px;line-height:1.4;">友達の理想の人生</h1>
+      <p style="color:#888;font-size:13px;margin:0;">あなたの友達がシミュレーションしました</p>
+    </div>
+    <div style="background:linear-gradient(135deg,#13132a,#1a1a35);border:1px solid rgba(201,169,110,0.3);border-radius:20px;padding:28px 24px;margin-bottom:24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div style="background:rgba(201,169,110,0.08);border-radius:12px;padding:16px;">
+          <div style="font-size:10px;color:#C9A96E;margin-bottom:4px;letter-spacing:1px;">月額生活費</div>
+          <div id="shared-monthly" style="font-size:24px;font-weight:700;color:#fff;">---万円</div>
+        </div>
+        <div style="background:rgba(201,169,110,0.08);border-radius:12px;padding:16px;">
+          <div style="font-size:10px;color:#C9A96E;margin-bottom:4px;letter-spacing:1px;">必要年収</div>
+          <div id="shared-annual" style="font-size:24px;font-weight:700;color:#fff;">---万円</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div style="background:rgba(201,169,110,0.05);border-radius:10px;padding:12px;">
+          <div style="font-size:9px;color:#888;margin-bottom:3px;">1日の収入</div>
+          <div id="shared-daily" style="font-size:16px;font-weight:700;color:#F0C070;">---万円</div>
+        </div>
+        <div style="background:rgba(201,169,110,0.05);border-radius:10px;padding:12px;">
+          <div style="font-size:9px;color:#888;margin-bottom:3px;">あなたの時給</div>
+          <div id="shared-hourly" style="font-size:16px;font-weight:700;color:#F0C070;">---万円</div>
+        </div>
+      </div>
+      <p style="color:#aaa;font-size:12px;line-height:1.8;text-align:center;margin:0;border-top:1px solid rgba(255,255,255,0.08);padding-top:14px;">この結果を見てどう思いましたか？<br>あなたの理想の人生も計算してみましょう。</p>
+    </div>
+    <button onclick="startMyDiagnosis()" style="width:100%;padding:18px;border-radius:14px;background:linear-gradient(135deg,#C9A96E,#a07840);border:none;color:#fff;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 24px rgba(201,169,110,0.3);margin-bottom:16px;">&#10024; あなたの理想の生活を知る</button>
+    <p style="text-align:center;color:#555;font-size:11px;margin:0;">Luxury Life Planner &copy; 2025</p>
+  </div>
+</div>
+<script>
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var r = params.get('r');
+  if(r){
+    var parts = r.split(',');
+    var monthly = parseFloat(parts[0]) || 0;
+    var annual = parseFloat(parts[1]) || 0;
+    if(monthly > 0 && annual > 0){
+      document.getElementById('shared-monthly').textContent = monthly.toLocaleString() + '万円';
+      document.getElementById('shared-annual').textContent = annual.toLocaleString() + '万円';
+      var daily = Math.round(annual * 10000 / 365) / 10000;
+      document.getElementById('shared-daily').textContent = (Math.round(daily * 10) / 10) + '万円';
+      var hourly = Math.round(annual * 10000 / 2000) / 10000;
+      document.getElementById('shared-hourly').textContent = (Math.round(hourly * 10) / 10) + '万円';
+      document.getElementById('shared-results-page').style.display = 'block';
+      var root = document.getElementById('root');
+      if(root) root.style.display = 'none';
+    }
+  }
+  window.startMyDiagnosis = function(){
+    document.getElementById('shared-results-page').style.display = 'none';
+    var root = document.getElementById('root');
+    if(root) root.style.display = 'block';
+    window.history.replaceState({}, '', window.location.pathname);
   };
 })();
 </script>
